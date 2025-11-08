@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import { QueryInput } from "@/components/QueryInput";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { NewsCard } from "@/components/NewsCard";
@@ -8,10 +6,8 @@ import { SentimentDisplay } from "@/components/SentimentDisplay";
 import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
-import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, History as HistoryIcon, LogIn } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import type { Session } from "@supabase/supabase-js";
 
 // Mock data for demonstration
 const mockNews = [
@@ -52,68 +48,19 @@ const mockSummary = `Based on the latest financial news and market analysis:
 Key takeaway: While tech leads growth, diversification remains crucial given sector-specific challenges.`;
 
 const Index = () => {
-  const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
   const [language, setLanguage] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [hasResults, setHasResults] = useState(false);
-  const [currentQuery, setCurrentQuery] = useState("");
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("Logged out successfully");
-    setHasResults(false);
-  };
-
-  const saveSearchHistory = async (query: string) => {
-    if (!session) return;
-
-    try {
-      const { error } = await supabase.from("search_history").insert({
-        user_id: session.user.id,
-        query,
-        language,
-        results_count: mockNews.length,
-        sentiment_positive: 8,
-        sentiment_neutral: 5,
-        sentiment_negative: 3,
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error("Failed to save search history:", error);
-    }
-  };
 
   const handleQuery = (query: string) => {
     setIsLoading(true);
-    setCurrentQuery(query);
     toast.info(`Searching for: ${query}`);
     
     // Simulate API call
-    setTimeout(async () => {
+    setTimeout(() => {
       setIsLoading(false);
       setHasResults(true);
       toast.success("Results loaded successfully");
-      
-      // Save to history if user is logged in
-      if (session) {
-        await saveSearchHistory(query);
-      }
     }, 1500);
   };
 
@@ -134,41 +81,7 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground">AI Financial Assistant</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <LanguageSelector value={language} onChange={setLanguage} />
-              {session ? (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/history")}
-                    className="gap-2"
-                  >
-                    <HistoryIcon className="h-4 w-4" />
-                    History
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleLogout}
-                    className="gap-2"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => navigate("/auth")}
-                  className="gap-2"
-                >
-                  <LogIn className="h-4 w-4" />
-                  Login
-                </Button>
-              )}
-            </div>
+            <LanguageSelector value={language} onChange={setLanguage} />
           </div>
         </div>
       </header>
@@ -193,7 +106,7 @@ const Index = () => {
               {/* Left Column - News & Summary */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Executive Summary */}
-                <ExecutiveSummary summary={mockSummary} query={currentQuery} />
+                <ExecutiveSummary summary={mockSummary} query="Latest market trends" />
 
                 {/* News Results */}
                 <div className="space-y-4">
