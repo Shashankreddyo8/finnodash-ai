@@ -8,60 +8,55 @@ import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data for demonstration
-const mockNews = [
-  {
-    headline: "Tech Giants Report Strong Q4 Earnings",
-    snippet: "Major technology companies exceeded analyst expectations with robust quarterly results...",
-    source: "Financial Times",
-    link: "https://example.com",
-    timestamp: "2 hours ago",
-    sentiment: "positive" as const,
-    fullText: "In a remarkable display of resilience, leading technology companies have reported earnings that significantly surpassed Wall Street expectations...",
-  },
-  {
-    headline: "Federal Reserve Maintains Interest Rates",
-    snippet: "The central bank announced it will hold rates steady amid economic uncertainty...",
-    source: "Bloomberg",
-    link: "https://example.com",
-    timestamp: "5 hours ago",
-    sentiment: "neutral" as const,
-  },
-  {
-    headline: "Energy Sector Faces Volatility Concerns",
-    snippet: "Oil prices fluctuate as geopolitical tensions and supply concerns persist...",
-    source: "Reuters",
-    link: "https://example.com",
-    timestamp: "1 day ago",
-    sentiment: "negative" as const,
-  },
-];
-
-const mockSummary = `Based on the latest financial news and market analysis:
-
-• Technology sector shows strong momentum with earnings beats across major players
-• Federal Reserve policy remains cautious with steady interest rates
-• Energy markets experiencing increased volatility due to supply concerns
-• Overall market sentiment is cautiously optimistic with mixed signals
-
-Key takeaway: While tech leads growth, diversification remains crucial given sector-specific challenges.`;
+interface Article {
+  headline: string;
+  snippet: string;
+  source: string;
+  link: string;
+  timestamp: string;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  fullText?: string;
+}
 
 const Index = () => {
   const [language, setLanguage] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [hasResults, setHasResults] = useState(false);
+  const [news, setNews] = useState<Article[]>([]);
+  const [summary, setSummary] = useState("");
+  const [currentQuery, setCurrentQuery] = useState("");
 
-  const handleQuery = (query: string) => {
+  const handleQuery = async (query: string) => {
     setIsLoading(true);
+    setCurrentQuery(query);
     toast.info(`Searching for: ${query}`);
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-news', {
+        body: { query, language }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setNews(data.articles || []);
+      setSummary(data.summary || '');
       setHasResults(true);
-      toast.success("Results loaded successfully");
-    }, 1500);
+      toast.success(`Found ${data.articles?.length || 0} articles`);
+    } catch (error) {
+      console.error('Error fetching news:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch news');
+      setNews([]);
+      setSummary('');
+      setHasResults(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -106,27 +101,35 @@ const Index = () => {
               {/* Left Column - News & Summary */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Executive Summary */}
-                <ExecutiveSummary summary={mockSummary} query="Latest market trends" />
+                <ExecutiveSummary summary={summary} query={currentQuery} />
 
                 {/* News Results */}
                 <div className="space-y-4">
                   <h3 className="text-xl font-semibold flex items-center gap-2">
                     Latest News
                     <span className="text-sm font-normal text-muted-foreground">
-                      ({mockNews.length} articles)
+                      ({news.length} articles)
                     </span>
                   </h3>
-                  {mockNews.map((news, index) => (
-                    <NewsCard key={index} {...news} />
-                  ))}
+                  {news.length > 0 ? (
+                    news.map((article, index) => (
+                      <NewsCard key={index} {...article} />
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground">No articles found.</p>
+                  )}
                 </div>
               </div>
 
               {/* Right Column - Sentiment & Chat */}
               <div className="space-y-6">
                 <SentimentDisplay
-                  stats={{ positive: 8, neutral: 5, negative: 3 }}
-                  totalArticles={16}
+                  stats={{
+                    positive: news.filter(a => a.sentiment === 'positive').length,
+                    neutral: news.filter(a => a.sentiment === 'neutral').length,
+                    negative: news.filter(a => a.sentiment === 'negative').length,
+                  }}
+                  totalArticles={news.length}
                 />
                 <VoiceControls />
               </div>
