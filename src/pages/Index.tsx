@@ -6,6 +6,7 @@ import { SentimentDisplay } from "@/components/SentimentDisplay";
 import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
+import { UrlSummarizer } from "@/components/UrlSummarizer";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,7 +86,7 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Search Section */}
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-3xl mx-auto space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-3xl font-bold mb-2">Intelligent Financial Insights</h2>
               <p className="text-muted-foreground">
@@ -93,6 +94,7 @@ const Index = () => {
               </p>
             </div>
             <QueryInput onSubmit={handleQuery} isLoading={isLoading} />
+            <UrlSummarizer />
           </div>
 
           {/* Results Section */}
