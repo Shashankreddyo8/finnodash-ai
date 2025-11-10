@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send, Bot, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -28,9 +29,117 @@ export const ChatInterface = () => {
     },
   ]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
 
-  const handleSend = (content: string) => {
-    if (!content.trim()) return;
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  const streamChat = async (userMessages: Message[]) => {
+    const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
+    
+    try {
+      const response = await fetch(CHAT_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ 
+          messages: userMessages.map(m => ({ role: m.role, content: m.content }))
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast({
+            title: "Rate limit exceeded",
+            description: "Please try again in a moment.",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (response.status === 402) {
+          toast({
+            title: "Credits required",
+            description: "Please add credits to continue using AI features.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw new Error("Failed to start stream");
+      }
+
+      if (!response.body) throw new Error("No response body");
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+      let assistantContent = "";
+
+      // Add initial assistant message
+      const assistantId = Date.now().toString();
+      setMessages(prev => [...prev, {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        timestamp: new Date(),
+      }]);
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => prev.map(m => 
+                m.id === assistantId 
+                  ? { ...m, content: assistantContent }
+                  : m
+              ));
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to get response. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSend = async (content: string) => {
+    if (!content.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -41,17 +150,10 @@ export const ChatInterface = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "I'm processing your query. In a real implementation, this would connect to your backend API for financial analysis.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    }, 1000);
+    await streamChat([...messages, userMessage]);
+    setIsLoading(false);
   };
 
   return (
@@ -65,7 +167,7 @@ export const ChatInterface = () => {
       <CardContent className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 p-4">
           <div className="space-y-4">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
                 className={`flex gap-3 ${
@@ -96,6 +198,7 @@ export const ChatInterface = () => {
                 )}
               </div>
             ))}
+            <div ref={scrollRef} />
           </div>
         </ScrollArea>
 
@@ -118,10 +221,15 @@ export const ChatInterface = () => {
               placeholder="Ask me anything about finance..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend(input)}
+              onKeyDown={(e) => e.key === "Enter" && !isLoading && handleSend(input)}
               className="flex-1"
+              disabled={isLoading}
             />
-            <Button onClick={() => handleSend(input)} size="icon">
+            <Button 
+              onClick={() => handleSend(input)} 
+              size="icon"
+              disabled={isLoading || !input.trim()}
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
