@@ -18,50 +18,66 @@ serve(async (req) => {
       throw new Error("Text is required");
     }
 
-    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
-    if (!OPENAI_API_KEY) {
-      throw new Error("OPENAI_API_KEY is not configured");
+    const GOOGLE_CLOUD_API_KEY = Deno.env.get("GOOGLE_CLOUD_API_KEY");
+    if (!GOOGLE_CLOUD_API_KEY) {
+      throw new Error("GOOGLE_CLOUD_API_KEY is not configured");
     }
 
-    // Select voice based on language for better pronunciation
-    let voice = "alloy"; // default English voice
+    // Select voice and language code based on language
+    let voiceName = "en-US-Standard-A";
+    let languageCode = "en-US";
+    
     switch (language) {
       case "hi": // Hindi
-      case "kn": // Kannada
-      case "te": // Telugu
-      case "ta": // Tamil
-        voice = "onyx"; // Use onyx for Indian languages as it handles them better
+        voiceName = "hi-IN-Standard-A";
+        languageCode = "hi-IN";
         break;
-      default:
-        voice = "alloy";
+      case "kn": // Kannada
+        voiceName = "kn-IN-Standard-A";
+        languageCode = "kn-IN";
+        break;
+      case "te": // Telugu
+        voiceName = "te-IN-Standard-A";
+        languageCode = "te-IN";
+        break;
+      case "ta": // Tamil
+        voiceName = "ta-IN-Standard-A";
+        languageCode = "ta-IN";
+        break;
+      default: // English
+        voiceName = "en-US-Standard-A";
+        languageCode = "en-US";
     }
 
-    const response = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "tts-1",
-        input: text,
-        voice: voice,
-        response_format: "mp3",
-      }),
-    });
+    const response = await fetch(
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${GOOGLE_CLOUD_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          input: { text },
+          voice: {
+            languageCode,
+            name: voiceName,
+          },
+          audioConfig: {
+            audioEncoding: "MP3",
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error?.message || "Failed to generate speech");
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const base64Audio = btoa(
-      String.fromCharCode(...new Uint8Array(arrayBuffer))
-    );
-
+    const data = await response.json();
+    
     return new Response(
-      JSON.stringify({ audioContent: base64Audio }),
+      JSON.stringify({ audioContent: data.audioContent }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
