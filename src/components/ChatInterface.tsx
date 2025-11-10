@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Volume2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -19,6 +21,14 @@ const suggestedPrompts = [
   "Compare AAPL and MSFT performance",
 ];
 
+const LANGUAGES = [
+  { code: "en", name: "English" },
+  { code: "kn", name: "ಕನ್ನಡ (Kannada)" },
+  { code: "te", name: "తెలుగు (Telugu)" },
+  { code: "ta", name: "தமிழ் (Tamil)" },
+  { code: "hi", name: "हिंदी (Hindi)" },
+];
+
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -30,7 +40,10 @@ export const ChatInterface = () => {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [voiceLanguage, setVoiceLanguage] = useState("en");
+  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -38,6 +51,70 @@ export const ChatInterface = () => {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Cleanup audio on unmount
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const handlePlayVoice = async (messageId: string, text: string) => {
+    try {
+      // Stop any currently playing audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      setPlayingMessageId(messageId);
+
+      const { data, error } = await supabase.functions.invoke("text-to-speech", {
+        body: { text, language: voiceLanguage },
+      });
+
+      if (error) throw error;
+
+      if (!data?.audioContent) {
+        throw new Error("No audio content received");
+      }
+
+      // Convert base64 to audio and play
+      const audioBlob = new Blob(
+        [Uint8Array.from(atob(data.audioContent), (c) => c.charCodeAt(0))],
+        { type: "audio/mp3" }
+      );
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.onended = () => {
+        setPlayingMessageId(null);
+        URL.revokeObjectURL(audioUrl);
+      };
+      audioRef.current.onerror = () => {
+        setPlayingMessageId(null);
+        URL.revokeObjectURL(audioUrl);
+        toast({
+          title: "Playback Error",
+          description: "Failed to play audio",
+          variant: "destructive",
+        });
+      };
+      
+      await audioRef.current.play();
+    } catch (error) {
+      console.error("Voice playback error:", error);
+      setPlayingMessageId(null);
+      toast({
+        title: "Error",
+        description: "Failed to generate voice output",
+        variant: "destructive",
+      });
+    }
+  };
 
   const streamChat = async (userMessages: Message[]) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -159,10 +236,27 @@ export const ChatInterface = () => {
   return (
     <Card className="flex flex-col h-[600px]">
       <CardHeader className="border-b">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Bot className="h-5 w-5 text-primary" />
-          AI Assistant Chat
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Bot className="h-5 w-5 text-primary" />
+            AI Assistant Chat
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Voice Language:</span>
+            <Select value={voiceLanguage} onValueChange={setVoiceLanguage}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((lang) => (
+                  <SelectItem key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 p-4">
@@ -186,10 +280,29 @@ export const ChatInterface = () => {
                       : "bg-muted"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed">{message.content}</p>
-                  <p className="text-xs mt-1 opacity-70">
-                    {message.timestamp.toLocaleTimeString()}
-                  </p>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <p className="text-xs mt-1 opacity-70">
+                        {message.timestamp.toLocaleTimeString()}
+                      </p>
+                    </div>
+                    {message.role === "assistant" && message.content && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handlePlayVoice(message.id, message.content)}
+                        disabled={playingMessageId === message.id}
+                      >
+                        {playingMessageId === message.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Volume2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
                 </div>
                 {message.role === "user" && (
                   <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
