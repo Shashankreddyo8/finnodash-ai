@@ -1,7 +1,8 @@
-import { useState } from "react";
-import { Search, Mic } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 interface QueryInputProps {
   onSubmit: (query: string) => void;
@@ -10,6 +11,53 @@ interface QueryInputProps {
 
 export const QueryInput = ({ onSubmit, isLoading = false }: QueryInputProps) => {
   const [query, setQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+
+      recognitionInstance.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setQuery(transcript);
+        toast.success("Voice input captured!");
+      };
+
+      recognitionInstance.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+        toast.error("Voice input failed. Please try again.");
+      };
+
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+
+      setRecognition(recognitionInstance);
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognition) {
+      toast.error("Voice input not supported in this browser");
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+      toast.info("Listening... Speak now");
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +85,13 @@ export const QueryInput = ({ onSubmit, isLoading = false }: QueryInputProps) => 
             variant="ghost"
             className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 hover:bg-accent"
             disabled={isLoading}
+            onClick={toggleListening}
           >
-            <Mic className="h-4 w-4" />
+            {isListening ? (
+              <MicOff className="h-4 w-4 text-destructive animate-pulse" />
+            ) : (
+              <Mic className="h-4 w-4" />
+            )}
           </Button>
         </div>
         <Button
