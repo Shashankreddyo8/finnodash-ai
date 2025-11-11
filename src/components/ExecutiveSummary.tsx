@@ -9,6 +9,39 @@ interface ExecutiveSummaryProps {
 }
 
 export const ExecutiveSummary = ({ summary, query }: ExecutiveSummaryProps) => {
+  const formatSummary = (text: string) => {
+    // Split by lines and process each line
+    const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+    const formatted: JSX.Element[] = [];
+    
+    lines.forEach((line, index) => {
+      // Remove leading asterisks and markdown bold markers
+      let cleanLine = line.replace(/^\*+\s*/, '').replace(/\*\*/g, '');
+      
+      // Check if it's a heading (ends with colon)
+      if (cleanLine.includes(':')) {
+        const [heading, ...rest] = cleanLine.split(':');
+        const content = rest.join(':').trim();
+        
+        formatted.push(
+          <div key={index} className="mb-4">
+            <h3 className="font-semibold text-foreground mb-2">{heading}</h3>
+            {content && <p className="text-foreground/80 leading-relaxed">{content}</p>}
+          </div>
+        );
+      } else {
+        // Regular paragraph
+        formatted.push(
+          <p key={index} className="text-foreground/80 leading-relaxed mb-3">
+            {cleanLine}
+          </p>
+        );
+      }
+    });
+    
+    return formatted;
+  };
+
   const handleCopy = () => {
     navigator.clipboard.writeText(summary);
     toast.success("Summary copied to clipboard");
@@ -60,8 +93,8 @@ export const ExecutiveSummary = ({ summary, query }: ExecutiveSummaryProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="prose prose-sm max-w-none">
-          <p className="text-foreground/80 leading-relaxed whitespace-pre-wrap">{summary}</p>
+        <div className="space-y-2">
+          {formatSummary(summary)}
         </div>
       </CardContent>
     </Card>
