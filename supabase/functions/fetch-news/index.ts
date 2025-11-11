@@ -13,6 +13,15 @@ serve(async (req) => {
   try {
     const { query, language = 'en' } = await req.json();
     
+    // Validate and sanitize query
+    const trimmedQuery = query?.trim();
+    if (!trimmedQuery || trimmedQuery.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Query parameter is required and cannot be empty' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     const GNEWS_API_KEY = Deno.env.get('GNEWS_API_KEY');
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
@@ -24,10 +33,10 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log(`Fetching news for query: ${query}, language: ${language}`);
+    console.log(`Fetching news for query: ${trimmedQuery}, language: ${language}`);
 
     // Fetch news from GNews API
-    const gnewsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${language}&max=10&apikey=${GNEWS_API_KEY}`;
+    const gnewsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(trimmedQuery)}&lang=${language}&max=10&apikey=${GNEWS_API_KEY}`;
     const newsResponse = await fetch(gnewsUrl);
     
     if (!newsResponse.ok) {
