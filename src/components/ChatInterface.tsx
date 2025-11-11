@@ -29,6 +29,39 @@ const LANGUAGES = [
   { code: "hi", name: "हिंदी (Hindi)" },
 ];
 
+const formatMessageContent = (text: string) => {
+  // Split by lines and process each line
+  const lines = text.split('\n').map(line => line.trim()).filter(Boolean);
+  const formatted: JSX.Element[] = [];
+  
+  lines.forEach((line, index) => {
+    // Remove leading asterisks and markdown bold markers
+    let cleanLine = line.replace(/^\*+\s*/, '').replace(/\*\*/g, '');
+    
+    // Check if it's a heading (ends with colon or starts with ##)
+    if (cleanLine.includes(':') && cleanLine.split(':')[0].length < 50) {
+      const [heading, ...rest] = cleanLine.split(':');
+      const content = rest.join(':').trim();
+      
+      formatted.push(
+        <div key={index} className="mb-2">
+          <strong className="font-semibold">{heading}:</strong>
+          {content && <span className="ml-1">{content}</span>}
+        </div>
+      );
+    } else {
+      // Regular paragraph
+      formatted.push(
+        <div key={index} className="mb-1">
+          {cleanLine}
+        </div>
+      );
+    }
+  });
+  
+  return formatted.length > 0 ? formatted : <span>{text}</span>;
+};
+
 export const ChatInterface = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -282,7 +315,12 @@ export const ChatInterface = () => {
                 >
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
-                      <p className="text-sm leading-relaxed">{message.content}</p>
+                      <div className="text-sm leading-relaxed">
+                        {message.role === "assistant" 
+                          ? formatMessageContent(message.content)
+                          : message.content
+                        }
+                      </div>
                       <p className="text-xs mt-1 opacity-70">
                         {message.timestamp.toLocaleTimeString()}
                       </p>
