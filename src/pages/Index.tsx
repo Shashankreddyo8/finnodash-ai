@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { QueryInput } from "@/components/QueryInput";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { NewsCard } from "@/components/NewsCard";
@@ -7,9 +8,11 @@ import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
 import { UrlSummarizer } from "@/components/UrlSummarizer";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Shield, LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { User, Session } from "@supabase/supabase-js";
 
 interface Article {
   headline: string;
@@ -22,6 +25,10 @@ interface Article {
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [language, setLanguage] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [hasResults, setHasResults] = useState(false);
@@ -29,7 +36,49 @@ const Index = () => {
   const [summary, setSummary] = useState("");
   const [currentQuery, setCurrentQuery] = useState("");
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+      
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      
+      setIsAdmin(roles?.some((r) => r.role === "admin") || false);
+    };
+
+    checkAdmin();
+  }, [user]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+  };
+
   const handleQuery = async (query: string) => {
+    if (!user) {
+      toast.error("Please login to search");
+      navigate("/auth");
+      return;
+    }
+
     setIsLoading(true);
     setCurrentQuery(query);
     toast.info(`Searching for: ${query}`);
@@ -49,6 +98,24 @@ const Index = () => {
       setSummary(data.summary || '');
       setHasResults(true);
       toast.success(`Found ${data.articles?.length || 0} articles`);
+
+      if (user) {
+        const sentimentStats = {
+          positive: (data.articles || []).filter((a: Article) => a.sentiment === 'positive').length,
+          neutral: (data.articles || []).filter((a: Article) => a.sentiment === 'neutral').length,
+          negative: (data.articles || []).filter((a: Article) => a.sentiment === 'negative').length,
+        };
+
+        await supabase.from('search_history').insert({
+          user_id: user.id,
+          query,
+          results_count: data.articles?.length || 0,
+          sentiment_positive: sentimentStats.positive,
+          sentiment_neutral: sentimentStats.neutral,
+          sentiment_negative: sentimentStats.negative,
+          language,
+        });
+      }
     } catch (error) {
       console.error('Error fetching news:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to fetch news');
@@ -77,7 +144,27 @@ const Index = () => {
                 <p className="text-xs text-muted-foreground">AI Financial Assistant</p>
               </div>
             </div>
-            <LanguageSelector value={language} onChange={setLanguage} />
+            <div className="flex items-center gap-2">
+              <LanguageSelector value={language} onChange={setLanguage} />
+              {user ? (
+                <>
+                  {isAdmin && (
+                    <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <Button variant="default" size="sm" onClick={() => navigate("/auth")}>
+                  Login
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
