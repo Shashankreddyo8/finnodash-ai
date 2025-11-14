@@ -8,6 +8,7 @@ import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
 import { UrlSummarizer } from "@/components/UrlSummarizer";
+import { StockMarket } from "@/components/StockMarket";
 import { IndianRupee, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -172,6 +173,11 @@ const Index = () => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-6">
+          {/* Stock Market Section */}
+          <div className="mb-8">
+            <StockMarket />
+          </div>
+
           {/* Search Section */}
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="text-center mb-6">
