@@ -8,7 +8,7 @@ import { ExecutiveSummary } from "@/components/ExecutiveSummary";
 import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
 import { UrlSummarizer } from "@/components/UrlSummarizer";
-import { Sparkles, Shield, LogOut } from "lucide-react";
+import { IndianRupee, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,7 +135,7 @@ const Index = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Sparkles className="h-6 w-6 text-primary-foreground" />
+                <IndianRupee className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
