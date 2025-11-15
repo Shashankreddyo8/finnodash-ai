@@ -27,7 +27,11 @@ interface MarketData {
   topStocks: Stock[];
 }
 
-export const StockMarket = () => {
+interface StockMarketProps {
+  onStocksUpdate?: (stocks: Stock[]) => void;
+}
+
+export const StockMarket = ({ onStocksUpdate }: StockMarketProps) => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -42,6 +46,11 @@ export const StockMarket = () => {
       setMarketData(data);
       setLastUpdated(new Date());
       toast.success("Market data updated");
+      
+      // Notify parent about stock updates
+      if (onStocksUpdate && data.topStocks) {
+        onStocksUpdate(data.topStocks);
+      }
     } catch (error) {
       console.error('Error fetching market data:', error);
       toast.error('Failed to fetch market data');

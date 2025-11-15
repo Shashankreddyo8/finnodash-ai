@@ -89,6 +89,42 @@ export type Database = {
         }
         Relationships: []
       }
+      watchlist: {
+        Row: {
+          alert_type: string | null
+          created_at: string
+          current_price: number | null
+          id: string
+          stock_name: string
+          stock_symbol: string
+          target_price: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_type?: string | null
+          created_at?: string
+          current_price?: number | null
+          id?: string
+          stock_name: string
+          stock_symbol: string
+          target_price?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_type?: string | null
+          created_at?: string
+          current_price?: number | null
+          id?: string
+          stock_name?: string
+          stock_symbol?: string
+          target_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
