@@ -9,6 +9,7 @@ import { VoiceControls } from "@/components/VoiceControls";
 import { ChatInterface } from "@/components/ChatInterface";
 import { UrlSummarizer } from "@/components/UrlSummarizer";
 import { StockMarket } from "@/components/StockMarket";
+import { Watchlist } from "@/components/Watchlist";
 import { IndianRupee, Shield, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -30,6 +31,7 @@ const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [availableStocks, setAvailableStocks] = useState<Array<{ symbol: string; name: string; price: number }>>([]);
   const [language, setLanguage] = useState("en");
   const [isLoading, setIsLoading] = useState(false);
   const [hasResults, setHasResults] = useState(false);
@@ -175,7 +177,8 @@ const Index = () => {
         <div className="space-y-6">
           {/* Stock Market Section */}
           <div className="mb-8">
-            <StockMarket />
+            <StockMarket onStocksUpdate={setAvailableStocks} />
+            {user && <Watchlist availableStocks={availableStocks} />}
           </div>
 
           {/* Search Section */}
