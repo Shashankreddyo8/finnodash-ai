@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.text-to-speech]
 verify_jwt = false
+
+[functions.stock-suggestions]
+verify_jwt = false
