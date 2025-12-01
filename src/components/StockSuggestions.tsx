@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, TrendingUp, TrendingDown, Loader2, Target, ShieldAlert, CheckCircle } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Loader2, Target, ShieldAlert, CheckCircle, BarChart3, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -22,6 +22,9 @@ interface StockData {
   price: number;
   change: number;
   changePercent: number;
+  volume?: string;
+  high52w?: number;
+  low52w?: number;
   suggestion: StockSuggestion;
 }
 
@@ -137,7 +140,7 @@ export const StockSuggestions = () => {
               </Badge>
             </div>
 
-            <div className="mt-4 flex items-end gap-4">
+            <div className="mt-4 flex flex-wrap items-end gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Current Price</p>
                 <p className="text-3xl font-bold">
@@ -146,10 +149,43 @@ export const StockSuggestions = () => {
               </div>
               <div className={`flex items-center gap-1 text-lg ${stockData.change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {stockData.change >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />}
-                <span>{stockData.change >= 0 ? '+' : ''}{stockData.change.toFixed(2)}</span>
+                <span>{stockData.change >= 0 ? '+' : ''}₹{stockData.change.toFixed(2)}</span>
                 <span>({stockData.changePercent >= 0 ? '+' : ''}{stockData.changePercent.toFixed(2)}%)</span>
               </div>
             </div>
+
+            {/* 52-Week Range & Volume */}
+            {(stockData.high52w || stockData.volume) && (
+              <div className="mt-4 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                {stockData.volume && (
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-muted-foreground">Volume</p>
+                      <p className="font-semibold">{stockData.volume}</p>
+                    </div>
+                  </div>
+                )}
+                {stockData.high52w && (
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-green-500" />
+                    <div>
+                      <p className="text-muted-foreground">52W High</p>
+                      <p className="font-semibold text-green-600 dark:text-green-400">₹{stockData.high52w.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+                {stockData.low52w && (
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-red-500" />
+                    <div>
+                      <p className="text-muted-foreground">52W Low</p>
+                      <p className="font-semibold text-red-600 dark:text-red-400">₹{stockData.low52w.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* AI Analysis */}
