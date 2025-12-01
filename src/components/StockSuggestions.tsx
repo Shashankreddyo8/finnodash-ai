@@ -97,7 +97,7 @@ export const StockSuggestions = () => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Enter stock symbol (e.g., RELIANCE, TCS, INFY)"
+            placeholder="Enter symbol (e.g., RELIANCE, TCS, BTC, ETH, AAPL)"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
             onKeyPress={handleKeyPress}
@@ -262,7 +262,7 @@ export const StockSuggestions = () => {
         <div className="text-center py-8 text-muted-foreground">
           <Search className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>Search for a stock to get AI-powered analysis</p>
-          <p className="text-sm mt-1">Try: RELIANCE, TCS, HDFCBANK, INFY, ICICIBANK</p>
+          <p className="text-sm mt-1">Try: RELIANCE, TCS, BTC, ETH, AAPL, GOOGL, TSLA</p>
         </div>
       )}
     </Card>

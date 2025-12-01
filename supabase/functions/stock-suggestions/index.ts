@@ -37,6 +37,25 @@ const stockMapping: Record<string, { yahooSymbol: string; name: string }> = {
   'COALINDIA': { yahooSymbol: 'COALINDIA.NS', name: 'Coal India' },
   'JSWSTEEL': { yahooSymbol: 'JSWSTEEL.NS', name: 'JSW Steel' },
   'TECHM': { yahooSymbol: 'TECHM.NS', name: 'Tech Mahindra' },
+  // Cryptocurrencies
+  'BTC': { yahooSymbol: 'BTC-USD', name: 'Bitcoin' },
+  'ETH': { yahooSymbol: 'ETH-USD', name: 'Ethereum' },
+  'SOL': { yahooSymbol: 'SOL-USD', name: 'Solana' },
+  'XRP': { yahooSymbol: 'XRP-USD', name: 'Ripple' },
+  'DOGE': { yahooSymbol: 'DOGE-USD', name: 'Dogecoin' },
+  'ADA': { yahooSymbol: 'ADA-USD', name: 'Cardano' },
+  'MATIC': { yahooSymbol: 'MATIC-USD', name: 'Polygon' },
+  'DOT': { yahooSymbol: 'DOT-USD', name: 'Polkadot' },
+  'AVAX': { yahooSymbol: 'AVAX-USD', name: 'Avalanche' },
+  'LINK': { yahooSymbol: 'LINK-USD', name: 'Chainlink' },
+  // US Stocks
+  'AAPL': { yahooSymbol: 'AAPL', name: 'Apple Inc.' },
+  'GOOGL': { yahooSymbol: 'GOOGL', name: 'Alphabet Inc.' },
+  'MSFT': { yahooSymbol: 'MSFT', name: 'Microsoft Corp.' },
+  'AMZN': { yahooSymbol: 'AMZN', name: 'Amazon.com Inc.' },
+  'TSLA': { yahooSymbol: 'TSLA', name: 'Tesla Inc.' },
+  'NVDA': { yahooSymbol: 'NVDA', name: 'NVIDIA Corp.' },
+  'META': { yahooSymbol: 'META', name: 'Meta Platforms Inc.' },
 };
 
 async function fetchYahooQuote(symbol: string): Promise<{
@@ -122,7 +141,7 @@ serve(async (req) => {
       if (!quote || quote.price === 0) {
         return new Response(
           JSON.stringify({ 
-            error: `Stock "${upperSymbol}" not found. Try popular stocks like: RELIANCE, TCS, HDFCBANK, INFY, ICICIBANK, SBIN, BHARTIARTL, ITC, WIPRO, TATAMOTORS` 
+            error: `Symbol "${upperSymbol}" not found. Try: Indian stocks (RELIANCE, TCS, INFY), US stocks (AAPL, GOOGL, TSLA), or Crypto (BTC, ETH, SOL)` 
           }),
           { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
