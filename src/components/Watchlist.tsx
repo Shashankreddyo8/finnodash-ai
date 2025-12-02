@@ -66,13 +66,13 @@ export const Watchlist = () => {
     for (const item of items) {
       try {
         const { data, error } = await supabase.functions.invoke('stock-suggestions', {
-          body: { query: item.stock_symbol }
+          body: { symbol: item.stock_symbol }
         });
         
-        if (!error && data?.currentPrice) {
+        if (!error && data?.price) {
           prices.set(item.stock_symbol, {
             symbol: item.stock_symbol,
-            price: data.currentPrice,
+            price: data.price,
             change: data.change || 0,
             changePercent: data.changePercent || 0
           });
@@ -107,7 +107,7 @@ export const Watchlist = () => {
     setIsFetchingPrice(true);
     try {
       const { data, error } = await supabase.functions.invoke('stock-suggestions', {
-        body: { query: stockSymbol.toUpperCase().trim() }
+        body: { symbol: stockSymbol.toUpperCase().trim() }
       });
 
       if (error) {
@@ -122,10 +122,10 @@ export const Watchlist = () => {
         return;
       }
 
-      if (data?.currentPrice) {
-        setCurrentPrice(data.currentPrice);
+      if (data?.price) {
+        setCurrentPrice(data.price);
         setStockName(data.name || stockSymbol.toUpperCase());
-        toast.success(`Found ${stockSymbol.toUpperCase()} at ₹${data.currentPrice.toFixed(2)}`);
+        toast.success(`Found ${stockSymbol.toUpperCase()} at ₹${data.price.toFixed(2)}`);
       } else {
         toast.error("Stock not found");
       }
