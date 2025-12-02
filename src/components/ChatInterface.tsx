@@ -308,26 +308,26 @@ export const ChatInterface = () => {
   };
 
   return (
-    <Card className="flex flex-col h-[700px] overflow-hidden border-border/50 shadow-xl bg-gradient-to-b from-card to-card/95">
+    <Card className="flex flex-col h-[calc(100vh-12rem)] min-h-[400px] max-h-[800px] overflow-hidden border-border/50 shadow-xl bg-gradient-to-b from-card to-card/95">
       {/* Header */}
-      <CardHeader className="border-b border-border/50 py-4 px-6 bg-card/80 backdrop-blur-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
-                <Bot className="h-5 w-5 text-primary-foreground" />
+      <CardHeader className="border-b border-border/50 py-3 px-3 sm:py-4 sm:px-6 bg-card/80 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-lg">
+                <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-card" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-card" />
             </div>
-            <div>
-              <h2 className="font-semibold text-lg">FINNOLAN AI</h2>
-              <p className="text-xs text-muted-foreground">Your Financial Assistant</p>
+            <div className="min-w-0">
+              <h2 className="font-semibold text-base sm:text-lg truncate">FINNOLAN AI</h2>
+              <p className="text-xs text-muted-foreground hidden sm:block">Your Financial Assistant</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             <Select value={voiceLanguage} onValueChange={setVoiceLanguage}>
-              <SelectTrigger className="w-[100px] h-9 text-xs">
-                <Volume2 className="h-3.5 w-3.5 mr-1.5" />
+              <SelectTrigger className="w-[70px] sm:w-[100px] h-8 sm:h-9 text-xs">
+                <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 sm:mr-1.5" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -341,7 +341,7 @@ export const ChatInterface = () => {
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-9 w-9"
+              className="h-8 w-8 sm:h-9 sm:w-9"
               onClick={handleClearChat}
               title="Clear chat"
             >
@@ -353,36 +353,36 @@ export const ChatInterface = () => {
 
       {/* Messages */}
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-        <ScrollArea className="flex-1 px-4 py-4">
-          <div className="space-y-6 max-w-3xl mx-auto">
+        <ScrollArea className="flex-1 px-2 sm:px-4 py-3 sm:py-4">
+          <div className="space-y-4 sm:space-y-6 max-w-3xl mx-auto">
             {messages.map((message, index) => (
               <div
                 key={message.id}
                 className={cn(
-                  "flex gap-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
+                  "flex gap-2 sm:gap-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
                   message.role === "user" ? "justify-end" : "justify-start"
                 )}
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {message.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0 mt-1">
-                    <Bot className="h-4 w-4 text-primary" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0 mt-1">
+                    <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                   </div>
                 )}
                 
                 <div className={cn(
-                  "group relative max-w-[85%]",
+                  "group relative max-w-[90%] sm:max-w-[85%]",
                   message.role === "user" && "order-first"
                 )}>
                   <div
                     className={cn(
-                      "rounded-2xl px-4 py-3 shadow-sm",
+                      "rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm",
                       message.role === "user"
                         ? "bg-primary text-primary-foreground rounded-br-md"
                         : "bg-muted/70 border border-border/50 rounded-bl-md"
                     )}
                   >
-                    <div className="text-sm leading-relaxed">
+                    <div className="text-xs sm:text-sm leading-relaxed">
                       {message.role === "assistant" 
                         ? (message.content ? formatMessageContent(message.content) : (
                             <div className="flex items-center gap-2 text-muted-foreground">
@@ -395,37 +395,37 @@ export const ChatInterface = () => {
                     </div>
                   </div>
                   
-                  {/* Message actions */}
+                  {/* Message actions - always visible on mobile, hover on desktop */}
                   {message.role === "assistant" && message.content && (
-                    <div className="flex items-center gap-1 mt-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex flex-wrap items-center gap-1 mt-1.5 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs text-muted-foreground hover:text-foreground"
                         onClick={() => handleCopyMessage(message.id, message.content)}
                       >
                         {copiedMessageId === message.id ? (
-                          <Check className="h-3.5 w-3.5 mr-1 text-green-500" />
+                          <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1 text-green-500" />
                         ) : (
-                          <Copy className="h-3.5 w-3.5 mr-1" />
+                          <Copy className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1" />
                         )}
-                        {copiedMessageId === message.id ? "Copied" : "Copy"}
+                        <span className="hidden sm:inline">{copiedMessageId === message.id ? "Copied" : "Copy"}</span>
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        className="h-6 sm:h-7 px-1.5 sm:px-2 text-xs text-muted-foreground hover:text-foreground"
                         onClick={() => handlePlayVoice(message.id, message.content)}
                         disabled={playingMessageId === message.id}
                       >
                         {playingMessageId === message.id ? (
-                          <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                          <Loader2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1 animate-spin" />
                         ) : (
-                          <Volume2 className="h-3.5 w-3.5 mr-1" />
+                          <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-0.5 sm:mr-1" />
                         )}
-                        {playingMessageId === message.id ? "Playing..." : "Listen"}
+                        <span className="hidden sm:inline">{playingMessageId === message.id ? "Playing..." : "Listen"}</span>
                       </Button>
-                      <span className="text-xs text-muted-foreground/60 ml-2">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground/60 ml-1 sm:ml-2">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -433,7 +433,7 @@ export const ChatInterface = () => {
                   
                   {message.role === "user" && (
                     <div className="text-right mt-1">
-                      <span className="text-xs text-muted-foreground/60">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground/60">
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -441,8 +441,8 @@ export const ChatInterface = () => {
                 </div>
 
                 {message.role === "user" && (
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center shrink-0 mt-1">
-                    <User className="h-4 w-4 text-accent-foreground" />
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-accent/30 to-accent/10 flex items-center justify-center shrink-0 mt-1">
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent-foreground" />
                   </div>
                 )}
               </div>
@@ -450,15 +450,15 @@ export const ChatInterface = () => {
             
             {/* Typing indicator */}
             {isLoading && messages[messages.length - 1]?.role === "user" && (
-              <div className="flex gap-3 justify-start animate-in fade-in-0">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
-                  <Bot className="h-4 w-4 text-primary" />
+              <div className="flex gap-2 sm:gap-3 justify-start animate-in fade-in-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center shrink-0">
+                  <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                 </div>
-                <div className="bg-muted/70 border border-border/50 rounded-2xl rounded-bl-md px-4 py-3">
+                <div className="bg-muted/70 border border-border/50 rounded-2xl rounded-bl-md px-3 py-2.5 sm:px-4 sm:py-3">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <div className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: "300ms" }} />
                   </div>
                 </div>
               </div>
@@ -469,19 +469,19 @@ export const ChatInterface = () => {
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="border-t border-border/50 p-4 bg-card/80 backdrop-blur-sm">
+        <div className="border-t border-border/50 p-2.5 sm:p-4 bg-card/80 backdrop-blur-sm">
           {/* Suggested prompts - only show when chat is minimal */}
           {messages.length <= 2 && (
-            <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
               {suggestedPrompts.map((prompt) => (
                 <button
                   key={prompt.text}
                   onClick={() => handleSend(prompt.text)}
                   disabled={isLoading}
-                  className="flex items-center gap-2 p-3 rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/60 hover:border-primary/30 transition-all text-left group"
+                  className="flex items-center gap-2 p-2 sm:p-3 rounded-lg sm:rounded-xl border border-border/50 bg-muted/30 hover:bg-muted/60 hover:border-primary/30 transition-all text-left group"
                 >
-                  <prompt.icon className={cn("h-4 w-4 shrink-0", prompt.color)} />
-                  <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
+                  <prompt.icon className={cn("h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0", prompt.color)} />
+                  <span className="text-[11px] sm:text-xs text-muted-foreground group-hover:text-foreground transition-colors line-clamp-1">
                     {prompt.text}
                   </span>
                 </button>
@@ -494,11 +494,11 @@ export const ChatInterface = () => {
             <div className="flex-1 relative">
               <Input
                 ref={inputRef}
-                placeholder="Ask about stocks, markets, or financial concepts..."
+                placeholder="Ask about stocks, markets..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && !isLoading && handleSend(input)}
-                className="pr-4 h-12 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
+                className="pr-4 h-10 sm:h-12 text-sm rounded-lg sm:rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
                 disabled={isLoading}
               />
             </div>
@@ -506,12 +506,12 @@ export const ChatInterface = () => {
               onClick={() => handleSend(input)} 
               size="icon"
               disabled={isLoading || !input.trim()}
-              className="h-12 w-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
             >
               {isLoading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
-                <Send className="h-5 w-5" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5" />
               )}
             </Button>
           </div>
