@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Watchlist } from "@/components/Watchlist";
-import { StockMarket } from "@/components/StockMarket";
 import { useLayoutContext } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +8,6 @@ import { LogIn } from "lucide-react";
 const WatchlistPage = () => {
   const navigate = useNavigate();
   const { user } = useLayoutContext();
-  const [availableStocks, setAvailableStocks] = useState<Array<{ symbol: string; name: string; price: number }>>([]);
 
   if (!user) {
     return (
@@ -41,14 +38,11 @@ const WatchlistPage = () => {
       <div>
         <h1 className="text-3xl font-bold mb-2">Watchlist</h1>
         <p className="text-muted-foreground">
-          Track your favorite stocks and set price alerts
+          Track your favorite stocks, crypto, and indices with price alerts
         </p>
       </div>
 
-      <div className="grid gap-6">
-        <StockMarket onStocksUpdate={setAvailableStocks} />
-        <Watchlist availableStocks={availableStocks} />
-      </div>
+      <Watchlist />
     </div>
   );
 };

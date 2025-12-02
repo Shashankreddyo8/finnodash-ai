@@ -31,7 +31,7 @@ interface StockMarketProps {
   onStocksUpdate?: (stocks: Stock[]) => void;
 }
 
-export const StockMarket = ({ onStocksUpdate }: StockMarketProps) => {
+export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
   const [marketData, setMarketData] = useState<MarketData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
