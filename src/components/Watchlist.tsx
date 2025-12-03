@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, Search, Sparkles } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, Search, Sparkles, Mail, MailCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,8 @@ interface WatchlistItem {
   alert_type: string | null;
   current_price: number | null;
   created_at: string;
+  email_alert_enabled: boolean | null;
+  last_alert_sent: string | null;
 }
 
 interface StockPrice {
@@ -39,7 +42,20 @@ export const Watchlist = () => {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [targetPrice, setTargetPrice] = useState("");
   const [alertType, setAlertType] = useState<"above" | "below" | "none">("none");
+  const [emailAlertEnabled, setEmailAlertEnabled] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [sendingAlertId, setSendingAlertId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserEmail = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+    getUserEmail();
+  }, []);
 
   const fetchWatchlist = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -83,6 +99,21 @@ export const Watchlist = () => {
             change: data.change || 0,
             changePercent: data.changePercent || 0
           });
+
+          // Check if alert should be triggered
+          if (item.email_alert_enabled && item.target_price && item.alert_type !== 'none' && userEmail) {
+            const shouldTrigger = 
+              (item.alert_type === 'above' && data.price >= item.target_price) ||
+              (item.alert_type === 'below' && data.price <= item.target_price);
+            
+            // Only send if not sent in last hour
+            const lastSent = item.last_alert_sent ? new Date(item.last_alert_sent) : null;
+            const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+            
+            if (shouldTrigger && (!lastSent || lastSent < hourAgo)) {
+              sendEmailAlert(item, data.price);
+            }
+          }
         }
       } catch (err) {
         console.error(`Error fetching price for ${item.stock_symbol}:`, err);
@@ -90,6 +121,83 @@ export const Watchlist = () => {
     }
     
     setStockPrices(prices);
+  };
+
+  const sendEmailAlert = async (item: WatchlistItem, currentPrice: number) => {
+    if (!userEmail || !item.target_price) return;
+    
+    try {
+      const { error } = await supabase.functions.invoke('send-watchlist-alert', {
+        body: {
+          watchlistId: item.id,
+          stockSymbol: item.stock_symbol,
+          stockName: item.stock_name,
+          currentPrice,
+          targetPrice: item.target_price,
+          alertType: item.alert_type,
+          userEmail
+        }
+      });
+
+      if (error) {
+        console.error('Failed to send email alert:', error);
+      } else {
+        console.log(`Email alert sent for ${item.stock_symbol}`);
+      }
+    } catch (err) {
+      console.error('Error sending email alert:', err);
+    }
+  };
+
+  const toggleEmailAlert = async (item: WatchlistItem) => {
+    const newValue = !item.email_alert_enabled;
+    
+    const { error } = await supabase
+      .from('watchlist')
+      .update({ email_alert_enabled: newValue })
+      .eq('id', item.id);
+
+    if (error) {
+      toast.error("Failed to update email alert setting");
+    } else {
+      setWatchlist(prev => 
+        prev.map(w => w.id === item.id ? { ...w, email_alert_enabled: newValue } : w)
+      );
+      toast.success(newValue ? "Email alerts enabled" : "Email alerts disabled");
+    }
+  };
+
+  const testEmailAlert = async (item: WatchlistItem) => {
+    if (!userEmail || !item.target_price) {
+      toast.error("Please set a target price first");
+      return;
+    }
+
+    setSendingAlertId(item.id);
+    const currentStockPrice = stockPrices.get(item.stock_symbol);
+    
+    try {
+      const { error } = await supabase.functions.invoke('send-watchlist-alert', {
+        body: {
+          watchlistId: item.id,
+          stockSymbol: item.stock_symbol,
+          stockName: item.stock_name,
+          currentPrice: currentStockPrice?.price || item.current_price || 0,
+          targetPrice: item.target_price,
+          alertType: item.alert_type || 'above',
+          userEmail
+        }
+      });
+
+      if (error) {
+        toast.error("Failed to send test email");
+      } else {
+        toast.success("Test email sent!");
+      }
+    } catch (err) {
+      toast.error("Failed to send test email");
+    }
+    setSendingAlertId(null);
   };
 
   useEffect(() => {
@@ -169,6 +277,7 @@ export const Watchlist = () => {
         current_price: currentPrice,
         target_price: targetPrice ? parseFloat(targetPrice) : null,
         alert_type: alertType,
+        email_alert_enabled: emailAlertEnabled && alertType !== 'none',
       });
 
     if (error) {
@@ -193,12 +302,11 @@ export const Watchlist = () => {
     setCurrentPrice(null);
     setTargetPrice("");
     setAlertType("none");
+    setEmailAlertEnabled(false);
   };
 
   const removeFromWatchlist = async (id: string, symbol: string) => {
     setDeletingId(id);
-    
-    // Small delay for animation
     await new Promise(resolve => setTimeout(resolve, 300));
     
     const { error } = await supabase
@@ -357,22 +465,39 @@ export const Watchlist = () => {
               {/* Target Price */}
               <div 
                 className={`overflow-hidden transition-all duration-400 ease-out ${
-                  alertType !== "none" ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'
+                  alertType !== "none" ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                 }`}
               >
-                <div className="space-y-2">
-                  <Label htmlFor="targetPrice" className="text-sm font-medium">
-                    Target Price (₹)
-                  </Label>
-                  <Input
-                    id="targetPrice"
-                    type="number"
-                    step="0.01"
-                    placeholder="Enter target price"
-                    value={targetPrice}
-                    onChange={(e) => setTargetPrice(e.target.value)}
-                    className="h-11 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
-                  />
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetPrice" className="text-sm font-medium">
+                      Target Price (₹)
+                    </Label>
+                    <Input
+                      id="targetPrice"
+                      type="number"
+                      step="0.01"
+                      placeholder="Enter target price"
+                      value={targetPrice}
+                      onChange={(e) => setTargetPrice(e.target.value)}
+                      className="h-11 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
+                    />
+                  </div>
+                  
+                  {/* Email Alert Toggle */}
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/50">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <div>
+                        <p className="text-sm font-medium">Email Alerts</p>
+                        <p className="text-xs text-muted-foreground">Get notified via email</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={emailAlertEnabled}
+                      onCheckedChange={setEmailAlertEnabled}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -426,6 +551,7 @@ export const Watchlist = () => {
             const alertTriggered = checkPriceAlert(item);
             const currentStockPrice = stockPrices.get(item.stock_symbol);
             const isDeleting = deletingId === item.id;
+            const isSendingAlert = sendingAlertId === item.id;
 
             return (
               <div
@@ -446,12 +572,18 @@ export const Watchlist = () => {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-semibold truncate">{item.stock_symbol}</span>
                       {alertTriggered && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary animate-pulse">
                           <Bell className="h-3 w-3" />
                           Alert
+                        </span>
+                      )}
+                      {item.email_alert_enabled && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-600 dark:text-green-400">
+                          <MailCheck className="h-3 w-3" />
+                          Email
                         </span>
                       )}
                     </div>
@@ -492,19 +624,60 @@ export const Watchlist = () => {
                     )}
                   </div>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeFromWatchlist(item.id, item.stock_symbol)}
-                    disabled={isDeleting}
-                    className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 shrink-0"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Email Alert Toggle */}
+                    {item.alert_type !== 'none' && item.target_price && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleEmailAlert(item)}
+                        className={`h-9 w-9 rounded-xl transition-all duration-200 ${
+                          item.email_alert_enabled 
+                            ? 'text-green-600 bg-green-500/10 hover:bg-green-500/20' 
+                            : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                        }`}
+                        title={item.email_alert_enabled ? "Disable email alerts" : "Enable email alerts"}
+                      >
+                        {item.email_alert_enabled ? (
+                          <MailCheck className="h-4 w-4" />
+                        ) : (
+                          <Mail className="h-4 w-4" />
+                        )}
+                      </Button>
                     )}
-                  </Button>
+
+                    {/* Test Email Button */}
+                    {item.email_alert_enabled && item.target_price && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => testEmailAlert(item)}
+                        disabled={isSendingAlert}
+                        className="h-9 w-9 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+                        title="Send test email"
+                      >
+                        {isSendingAlert ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Bell className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeFromWatchlist(item.id, item.stock_symbol)}
+                      disabled={isDeleting}
+                      className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             );

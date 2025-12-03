@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.stock-suggestions]
 verify_jwt = false
+
+[functions.send-watchlist-alert]
+verify_jwt = false
