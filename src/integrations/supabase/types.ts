@@ -94,7 +94,9 @@ export type Database = {
           alert_type: string | null
           created_at: string
           current_price: number | null
+          email_alert_enabled: boolean | null
           id: string
+          last_alert_sent: string | null
           stock_name: string
           stock_symbol: string
           target_price: number | null
@@ -105,7 +107,9 @@ export type Database = {
           alert_type?: string | null
           created_at?: string
           current_price?: number | null
+          email_alert_enabled?: boolean | null
           id?: string
+          last_alert_sent?: string | null
           stock_name: string
           stock_symbol: string
           target_price?: number | null
@@ -116,7 +120,9 @@ export type Database = {
           alert_type?: string | null
           created_at?: string
           current_price?: number | null
+          email_alert_enabled?: boolean | null
           id?: string
+          last_alert_sent?: string | null
           stock_name?: string
           stock_symbol?: string
           target_price?: number | null
