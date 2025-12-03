@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2 } from "lucide-react";
+import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, Search, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface WatchlistItem {
   id: string;
@@ -30,6 +31,7 @@ export const Watchlist = () => {
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [stockPrices, setStockPrices] = useState<Map<string, StockPrice>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isFetchingPrice, setIsFetchingPrice] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [stockSymbol, setStockSymbol] = useState("");
@@ -37,10 +39,14 @@ export const Watchlist = () => {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [targetPrice, setTargetPrice] = useState("");
   const [alertType, setAlertType] = useState<"above" | "below" | "none">("none");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchWatchlist = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setIsInitialLoading(false);
+      return;
+    }
 
     const { data, error } = await supabase
       .from('watchlist')
@@ -49,12 +55,13 @@ export const Watchlist = () => {
 
     if (error) {
       console.error('Error fetching watchlist:', error);
+      setIsInitialLoading(false);
       return;
     }
 
     setWatchlist(data || []);
+    setIsInitialLoading(false);
     
-    // Fetch current prices for all watchlist items
     if (data && data.length > 0) {
       fetchPricesForWatchlist(data);
     }
@@ -88,7 +95,6 @@ export const Watchlist = () => {
   useEffect(() => {
     fetchWatchlist();
     
-    // Refresh prices every 60 seconds
     const interval = setInterval(() => {
       if (watchlist.length > 0) {
         fetchPricesForWatchlist(watchlist);
@@ -190,6 +196,11 @@ export const Watchlist = () => {
   };
 
   const removeFromWatchlist = async (id: string, symbol: string) => {
+    setDeletingId(id);
+    
+    // Small delay for animation
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
     const { error } = await supabase
       .from('watchlist')
       .delete()
@@ -197,9 +208,11 @@ export const Watchlist = () => {
 
     if (error) {
       toast.error("Failed to remove from watchlist");
+      setDeletingId(null);
     } else {
       toast.success(`${symbol} removed from watchlist`);
-      fetchWatchlist();
+      setWatchlist(prev => prev.filter(item => item.id !== id));
+      setDeletingId(null);
     }
   };
 
@@ -214,82 +227,143 @@ export const Watchlist = () => {
     return false;
   };
 
+  const WatchlistSkeleton = () => (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="p-4 rounded-xl border border-border/50 bg-muted/20">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">My Watchlist</h3>
+    <Card className="p-4 sm:p-6 border-border/50 bg-gradient-to-br from-card to-card/80 shadow-lg">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-xl bg-primary/10 ring-1 ring-primary/20">
+            <Star className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">My Watchlist</h3>
+            <p className="text-xs text-muted-foreground">
+              {watchlist.length} {watchlist.length === 1 ? 'stock' : 'stocks'} tracked
+            </p>
+          </div>
         </div>
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Stock
+            <Button 
+              size="sm" 
+              className="gap-2 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline">Add Stock</span>
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Stock to Watchlist</DialogTitle>
+          <DialogContent className="sm:max-w-md mx-4 rounded-2xl border-border/50 bg-gradient-to-br from-background to-background/95">
+            <DialogHeader className="pb-2">
+              <DialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Add to Watchlist
+              </DialogTitle>
               <DialogDescription>
-                Enter any stock symbol (Indian, US, or Crypto) and set a price alert.
+                Search any stock, crypto, or index to track
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-5 py-4">
+              {/* Stock Search */}
               <div className="space-y-2">
-                <Label htmlFor="stockSymbol">Stock Symbol</Label>
+                <Label htmlFor="stockSymbol" className="text-sm font-medium">
+                  Stock Symbol
+                </Label>
                 <div className="flex gap-2">
-                  <Input
-                    id="stockSymbol"
-                    placeholder="e.g., RELIANCE, TCS, BTC, AAPL"
-                    value={stockSymbol}
-                    onChange={(e) => {
-                      setStockSymbol(e.target.value.toUpperCase());
-                      setCurrentPrice(null);
-                      setStockName("");
-                    }}
-                  />
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="stockSymbol"
+                      placeholder="RELIANCE, BTC, AAPL..."
+                      value={stockSymbol}
+                      onChange={(e) => {
+                        setStockSymbol(e.target.value.toUpperCase());
+                        setCurrentPrice(null);
+                        setStockName("");
+                      }}
+                      className="pl-9 h-11 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
+                    />
+                  </div>
                   <Button 
                     variant="outline" 
                     onClick={fetchStockPrice}
                     disabled={isFetchingPrice || !stockSymbol.trim()}
+                    className="h-11 px-4 rounded-xl border-border/50 hover:bg-primary hover:text-primary-foreground transition-all duration-300"
                   >
-                    {isFetchingPrice ? <Loader2 className="h-4 w-4 animate-spin" /> : "Fetch"}
+                    {isFetchingPrice ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Search"
+                    )}
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Examples: RELIANCE, TCS, HDFCBANK, BTC, ETH, AAPL, GOOGL, TSLA
-                </p>
               </div>
 
-              {currentPrice !== null && (
-                <div className="p-3 rounded-lg bg-muted/50 border">
+              {/* Stock Preview */}
+              <div 
+                className={`overflow-hidden transition-all duration-500 ease-out ${
+                  currentPrice !== null ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <div className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 animate-fade-in">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-semibold">{stockName}</p>
+                      <p className="font-semibold text-lg">{stockName}</p>
                       <p className="text-sm text-muted-foreground">{stockSymbol}</p>
                     </div>
-                    <p className="text-xl font-bold">₹{currentPrice.toFixed(2)}</p>
+                    <div className="text-right">
+                      <p className="text-2xl font-bold text-primary">
+                        ₹{currentPrice?.toFixed(2)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Current Price</p>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
+              {/* Alert Settings */}
               <div className="space-y-2">
-                <Label htmlFor="alertType">Alert Type</Label>
+                <Label htmlFor="alertType" className="text-sm font-medium">
+                  Price Alert
+                </Label>
                 <Select value={alertType} onValueChange={(value: "above" | "below" | "none") => setAlertType(value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30 focus:bg-background">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No Alert</SelectItem>
-                    <SelectItem value="above">Alert when price goes above</SelectItem>
-                    <SelectItem value="below">Alert when price goes below</SelectItem>
+                  <SelectContent className="rounded-xl border-border/50">
+                    <SelectItem value="none" className="rounded-lg">No Alert</SelectItem>
+                    <SelectItem value="above" className="rounded-lg">Alert when price rises above</SelectItem>
+                    <SelectItem value="below" className="rounded-lg">Alert when price drops below</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              {alertType !== "none" && (
+
+              {/* Target Price */}
+              <div 
+                className={`overflow-hidden transition-all duration-400 ease-out ${
+                  alertType !== "none" ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
                 <div className="space-y-2">
-                  <Label htmlFor="targetPrice">Target Price (₹)</Label>
+                  <Label htmlFor="targetPrice" className="text-sm font-medium">
+                    Target Price (₹)
+                  </Label>
                   <Input
                     id="targetPrice"
                     type="number"
@@ -297,62 +371,104 @@ export const Watchlist = () => {
                     placeholder="Enter target price"
                     value={targetPrice}
                     onChange={(e) => setTargetPrice(e.target.value)}
+                    className="h-11 rounded-xl border-border/50 bg-muted/30 focus:bg-background transition-colors"
                   />
                 </div>
-              )}
+              </div>
             </div>
+
             <Button 
               onClick={addToWatchlist} 
               disabled={isLoading || currentPrice === null} 
-              className="w-full"
+              className="w-full h-12 rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.99]"
             >
-              {isLoading ? "Adding..." : "Add to Watchlist"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add to Watchlist
+                </>
+              )}
             </Button>
           </DialogContent>
         </Dialog>
       </div>
 
-      {watchlist.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          <Star className="h-12 w-12 mx-auto mb-2 opacity-50" />
-          <p>Your watchlist is empty</p>
-          <p className="text-sm">Add any stock, crypto, or index to track</p>
+      {/* Content */}
+      {isInitialLoading ? (
+        <WatchlistSkeleton />
+      ) : watchlist.length === 0 ? (
+        <div className="text-center py-12 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/50 mb-4">
+            <Star className="h-8 w-8 text-muted-foreground/50" />
+          </div>
+          <p className="font-medium text-foreground mb-1">Your watchlist is empty</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Add stocks, crypto, or indices to start tracking
+          </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsOpen(true)}
+            className="rounded-xl"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add your first stock
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">
-          {watchlist.map((item) => {
+          {watchlist.map((item, index) => {
             const alertTriggered = checkPriceAlert(item);
             const currentStockPrice = stockPrices.get(item.stock_symbol);
+            const isDeleting = deletingId === item.id;
 
             return (
               <div
                 key={item.id}
-                className={`p-4 rounded-lg border transition-colors ${
+                className={`p-4 rounded-xl border transition-all duration-300 ease-out ${
+                  isDeleting 
+                    ? 'opacity-0 scale-95 -translate-x-4' 
+                    : 'opacity-100 scale-100 translate-x-0'
+                } ${
                   alertTriggered 
-                    ? 'bg-primary/10 border-primary' 
-                    : 'bg-muted/30 border-border hover:bg-muted/50'
+                    ? 'bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 shadow-md shadow-primary/10' 
+                    : 'bg-muted/20 border-border/50 hover:bg-muted/40 hover:border-border hover:shadow-sm'
                 }`}
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'fade-in 0.4s ease-out forwards'
+                }}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-semibold">{item.stock_symbol}</span>
+                      <span className="font-semibold truncate">{item.stock_symbol}</span>
                       {alertTriggered && (
-                        <Bell className="h-4 w-4 text-primary animate-pulse" />
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary animate-pulse">
+                          <Bell className="h-3 w-3" />
+                          Alert
+                        </span>
                       )}
                     </div>
-                    <div className="text-sm text-muted-foreground mb-2">{item.stock_name}</div>
+                    <div className="text-sm text-muted-foreground mb-2 truncate">
+                      {item.stock_name}
+                    </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       {currentStockPrice ? (
                         <>
-                          <span className="text-lg font-bold">
+                          <span className="text-xl font-bold">
                             ₹{currentStockPrice.price.toFixed(2)}
                           </span>
-                          <span className={`text-sm flex items-center ${
+                          <span className={`inline-flex items-center text-sm font-medium px-2 py-0.5 rounded-full ${
                             currentStockPrice.changePercent >= 0 
-                              ? 'text-green-600 dark:text-green-400' 
-                              : 'text-red-600 dark:text-red-400'
+                              ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
+                              : 'bg-red-500/10 text-red-600 dark:text-red-400'
                           }`}>
                             {currentStockPrice.changePercent >= 0 
                               ? <TrendingUp className="h-3 w-3 mr-1" /> 
@@ -362,25 +478,32 @@ export const Watchlist = () => {
                           </span>
                         </>
                       ) : (
-                        <span className="text-lg font-bold">
+                        <span className="text-xl font-bold">
                           ₹{item.current_price?.toFixed(2) || '--'}
                         </span>
                       )}
                     </div>
 
                     {item.alert_type !== 'none' && item.target_price && (
-                      <div className="mt-2 text-sm text-muted-foreground">
-                        Alert: {item.alert_type === 'above' ? 'Above' : 'Below'} ₹{item.target_price.toFixed(2)}
+                      <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-full">
+                        <Bell className="h-3 w-3" />
+                        {item.alert_type === 'above' ? 'Above' : 'Below'} ₹{item.target_price.toFixed(2)}
                       </div>
                     )}
                   </div>
 
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => removeFromWatchlist(item.id, item.stock_symbol)}
+                    disabled={isDeleting}
+                    className="h-9 w-9 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all duration-200 shrink-0"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    {isDeleting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>
