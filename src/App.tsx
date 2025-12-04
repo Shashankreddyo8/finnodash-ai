@@ -13,6 +13,7 @@ import Chat from "./pages/Chat";
 import Summarizer from "./pages/Summarizer";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/watchlist" element={<WatchlistPage />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/summarizer" element={<Summarizer />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/admin" element={<Admin />} />
           </Route>
           <Route path="*" element={<NotFound />} />
