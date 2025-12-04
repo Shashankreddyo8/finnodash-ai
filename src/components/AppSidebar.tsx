@@ -8,7 +8,8 @@ import {
   Link2,
   Shield,
   LogOut,
-  IndianRupee
+  IndianRupee,
+  UserCircle
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useNavigate } from "react-router-dom";
@@ -42,6 +43,7 @@ const mainNavItems = [
 const toolsNavItems = [
   { title: "AI Chat", url: "/chat", icon: MessageSquare },
   { title: "URL Summarizer", url: "/summarizer", icon: Link2 },
+  { title: "My Profile", url: "/profile", icon: UserCircle },
 ];
 
 interface AppSidebarProps {
