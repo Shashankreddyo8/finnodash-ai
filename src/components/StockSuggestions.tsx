@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, TrendingUp, TrendingDown, Loader2, Target, ShieldAlert, CheckCircle, BarChart3, ArrowUpDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 interface StockSuggestion {
   recommendation: "BUY" | "SELL" | "HOLD";
@@ -53,6 +54,17 @@ export const StockSuggestions = () => {
       if (data.error) throw new Error(data.error);
 
       setStockData(data);
+      
+      // Celebrate BUY recommendations with confetti!
+      if (data.suggestion?.recommendation === "BUY") {
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.7 },
+          colors: ['#22c55e', '#16a34a', '#4ade80']
+        });
+      }
+      
       toast.success(`Analysis complete for ${data.symbol}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to fetch stock data";
