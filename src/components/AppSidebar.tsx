@@ -63,14 +63,14 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="transition-all duration-300 ease-out">
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-soft transition-transform duration-300 hover:scale-105">
             <IndianRupee className="h-6 w-6 text-primary-foreground" />
           </div>
           {!collapsed && (
-            <div>
+            <div className="animate-fade-in">
               <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                 FINNOLAN
               </h1>
@@ -85,16 +85,16 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {mainNavItems.map((item, index) => (
+                <SidebarMenuItem key={item.title} style={{ animationDelay: `${index * 0.05}s` }} className="animate-slide-in-left">
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/"} 
-                      className="flex items-center gap-3 hover:bg-muted/50 transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="flex items-center gap-3 transition-all duration-200 hover:bg-muted/50 hover:translate-x-0.5"
+                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft"
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
+                      <item.icon className="h-4 w-4 shrink-0 transition-transform duration-200" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -108,15 +108,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {toolsNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {toolsNavItems.map((item, index) => (
+                <SidebarMenuItem key={item.title} style={{ animationDelay: `${(index + 5) * 0.05}s` }} className="animate-slide-in-left">
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
-                      className="flex items-center gap-3 hover:bg-muted/50 transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="flex items-center gap-3 transition-all duration-200 hover:bg-muted/50 hover:translate-x-0.5"
+                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft"
                     >
-                      <item.icon className="h-4 w-4 shrink-0" />
+                      <item.icon className="h-4 w-4 shrink-0 transition-transform duration-200" />
                       <span>{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
@@ -135,10 +135,10 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
                   <SidebarMenuButton asChild tooltip="Admin Panel">
                     <NavLink 
                       to="/admin" 
-                      className="flex items-center gap-3 hover:bg-muted/50 transition-colors"
-                      activeClassName="bg-primary/10 text-primary font-medium"
+                      className="flex items-center gap-3 transition-all duration-200 hover:bg-muted/50 hover:translate-x-0.5"
+                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft"
                     >
-                      <Shield className="h-4 w-4 shrink-0" />
+                      <Shield className="h-4 w-4 shrink-0 transition-transform duration-200" />
                       <span>Admin Panel</span>
                     </NavLink>
                   </SidebarMenuButton>

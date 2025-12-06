@@ -12,14 +12,14 @@ const WatchlistPage = () => {
   if (!user) {
     return (
       <div className="space-y-6">
-        <div>
+        <div className="animate-fade-in">
           <h1 className="text-3xl font-bold mb-2">Watchlist</h1>
           <p className="text-muted-foreground">
             Track your favorite stocks and set price alerts
           </p>
         </div>
 
-        <Card className="p-8 text-center">
+        <Card className="p-8 text-center animate-scale-in">
           <LogIn className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
           <h2 className="text-xl font-semibold mb-2">Login Required</h2>
           <p className="text-muted-foreground mb-4">
@@ -35,7 +35,7 @@ const WatchlistPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">Watchlist</h1>
         <p className="text-muted-foreground">
           Track your favorite stocks, crypto, and indices with price alerts

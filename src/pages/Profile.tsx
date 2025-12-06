@@ -203,7 +203,7 @@ export default function Profile() {
 
       <div className="grid gap-6 md:grid-cols-3">
         {/* Profile Card */}
-        <Card className="md:col-span-1 border-border/50">
+        <Card className="md:col-span-1 border-border/50 animate-scale-in" style={{ animationDelay: '0.1s' }}>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="relative group">
@@ -255,7 +255,7 @@ export default function Profile() {
         </Card>
 
         {/* Edit Form */}
-        <Card className="md:col-span-2 border-border/50">
+        <Card className="md:col-span-2 border-border/50 animate-scale-in" style={{ animationDelay: '0.2s' }}>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
@@ -385,7 +385,7 @@ export default function Profile() {
         </Card>
 
         {/* Password Change Card */}
-        <Card className="md:col-span-3 border-border/50">
+        <Card className="md:col-span-3 border-border/50 animate-scale-in" style={{ animationDelay: '0.3s' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lock className="w-5 h-5" />

@@ -3,7 +3,7 @@ import { StockSuggestions } from "@/components/StockSuggestions";
 const Stocks = () => {
   return (
     <div className="space-y-6">
-      <div>
+      <div className="animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">Stock Analysis</h1>
         <p className="text-muted-foreground">
           Get AI-powered buy/sell/hold recommendations for stocks and crypto

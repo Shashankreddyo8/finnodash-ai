@@ -54,17 +54,17 @@ export function AppLayout() {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+          <header className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-md supports-[backdrop-filter]:bg-card/80 transition-all duration-300">
             <div className="flex items-center justify-between px-4 py-3">
-              <SidebarTrigger className="mr-2" />
+              <SidebarTrigger className="mr-2 transition-transform duration-200 hover:scale-105 active:scale-95" />
               <div className="flex items-center gap-2">
                 <LanguageSelector value={language} onChange={setLanguage} />
               </div>
             </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 p-6">
+          {/* Main Content with Page Transitions */}
+          <main className="flex-1 p-6 animate-fade-in">
             <Outlet context={{ user, session, language, isAdmin }} />
           </main>
         </div>

@@ -91,7 +91,7 @@ export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
   return (
     <div className="space-y-4">
       {/* Market Indices */}
-      <Card className="p-6">
+      <Card className="p-6 animate-fade-in">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Market Indices</h3>
           <Button
@@ -99,17 +99,19 @@ export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
             size="sm"
             onClick={fetchMarketData}
             disabled={isLoading}
+            className="gap-2"
           >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
         
         <div className="grid md:grid-cols-3 gap-4">
-          {marketData.indices.map((index) => (
+          {marketData.indices.map((index, i) => (
             <div
               key={index.name}
-              className="p-4 rounded-lg bg-muted/50 border border-border"
+              className="p-4 rounded-xl bg-muted/50 border border-border transition-all duration-300 hover:bg-muted/70 hover:shadow-soft hover:-translate-y-0.5 animate-slide-up"
+              style={{ animationDelay: `${i * 0.1}s` }}
             >
               <div className="text-sm text-muted-foreground mb-1">{index.name}</div>
               <div className="text-2xl font-bold mb-1">
@@ -123,21 +125,22 @@ export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
         </div>
         
         {lastUpdated && (
-          <div className="text-xs text-muted-foreground mt-4">
+          <div className="text-xs text-muted-foreground mt-4 animate-fade-in">
             Last updated: {lastUpdated.toLocaleTimeString('en-IN')}
           </div>
         )}
       </Card>
 
       {/* Top Stocks */}
-      <Card className="p-6">
+      <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
         <h3 className="text-lg font-semibold mb-4">Top Stocks</h3>
         
         <div className="space-y-3">
-          {marketData.topStocks.map((stock) => (
+          {marketData.topStocks.map((stock, i) => (
             <div
               key={stock.symbol}
-              className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+              className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-all duration-300 hover:bg-muted/50 hover:shadow-soft hover:-translate-y-0.5 animate-slide-up"
+              style={{ animationDelay: `${(i + 3) * 0.05}s` }}
             >
               <div className="flex-1">
                 <div className="font-semibold">{stock.symbol}</div>
