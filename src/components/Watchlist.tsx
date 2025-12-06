@@ -10,6 +10,7 @@ import { Star, TrendingUp, TrendingDown, Bell, Trash2, Plus, Loader2, Search, Sp
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import confetti from "canvas-confetti";
 
 interface WatchlistItem {
   id: string;
@@ -192,7 +193,14 @@ export const Watchlist = () => {
       if (error) {
         toast.error("Failed to send test email");
       } else {
-        toast.success("Test email sent!");
+        // Small celebration for successful email
+        confetti({
+          particleCount: 50,
+          spread: 45,
+          origin: { y: 0.7 },
+          colors: ['#3b82f6', '#60a5fa', '#93c5fd']
+        });
+        toast.success("Test email sent! ✉️");
       }
     } catch (err) {
       toast.error("Failed to send test email");
@@ -287,7 +295,15 @@ export const Watchlist = () => {
         toast.error("Failed to add to watchlist");
       }
     } else {
-      toast.success(`${stockSymbol.toUpperCase()} added to watchlist`);
+      // Fire confetti celebration!
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6']
+      });
+      
+      toast.success(`${stockSymbol.toUpperCase()} added to watchlist 🎉`);
       fetchWatchlist();
       setIsOpen(false);
       resetForm();
