@@ -85,19 +85,19 @@ const News = () => {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="animate-fade-in">
         <h1 className="text-3xl font-bold mb-2">News Search</h1>
         <p className="text-muted-foreground">
           Get AI-powered analysis, sentiment tracking, and executive summaries
         </p>
       </div>
 
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto animate-scale-in" style={{ animationDelay: '0.1s' }}>
         <QueryInput onSubmit={handleQuery} isLoading={isLoading} />
       </div>
 
       {hasResults && (
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-6 animate-fade-in">
           <div className="lg:col-span-2 space-y-6">
             <ExecutiveSummary summary={summary} query={currentQuery} />
             <div className="space-y-4">
@@ -109,7 +109,13 @@ const News = () => {
               </h3>
               {news.length > 0 ? (
                 news.map((article, index) => (
-                  <NewsCard key={index} {...article} />
+                  <div 
+                    key={index} 
+                    className="animate-slide-up" 
+                    style={{ animationDelay: `${index * 0.08}s` }}
+                  >
+                    <NewsCard {...article} />
+                  </div>
                 ))
               ) : (
                 <p className="text-muted-foreground">No articles found.</p>
@@ -118,15 +124,19 @@ const News = () => {
           </div>
 
           <div className="space-y-6">
-            <SentimentDisplay
-              stats={{
-                positive: news.filter(a => a.sentiment === 'positive').length,
-                neutral: news.filter(a => a.sentiment === 'neutral').length,
-                negative: news.filter(a => a.sentiment === 'negative').length,
-              }}
-              totalArticles={news.length}
-            />
-            <VoiceControls />
+            <div className="animate-slide-in-right" style={{ animationDelay: '0.2s' }}>
+              <SentimentDisplay
+                stats={{
+                  positive: news.filter(a => a.sentiment === 'positive').length,
+                  neutral: news.filter(a => a.sentiment === 'neutral').length,
+                  negative: news.filter(a => a.sentiment === 'negative').length,
+                }}
+                totalArticles={news.length}
+              />
+            </div>
+            <div className="animate-slide-in-right" style={{ animationDelay: '0.3s' }}>
+              <VoiceControls />
+            </div>
           </div>
         </div>
       )}

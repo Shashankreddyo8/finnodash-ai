@@ -42,13 +42,13 @@ export const NewsCard = ({
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <Card className="hover:shadow-medium transition-shadow duration-300">
+    <Card className="group hover:-translate-y-1 transition-all duration-300">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-lg font-semibold leading-tight flex-1">
+          <h3 className="text-lg font-semibold leading-tight flex-1 group-hover:text-primary transition-colors duration-200">
             {headline}
           </h3>
-          <Badge className={cn("shrink-0", sentimentConfig[sentiment].color)}>
+          <Badge className={cn("shrink-0 transition-transform duration-200 group-hover:scale-105", sentimentConfig[sentiment].color)}>
             {sentimentConfig[sentiment].label}
           </Badge>
         </div>
@@ -61,11 +61,16 @@ export const NewsCard = ({
       <CardContent className="space-y-3">
         <p className="text-foreground/80 leading-relaxed">{snippet}</p>
         
-        {fullText && isExpanded && (
-          <div className="pt-3 border-t">
+        <div 
+          className={cn(
+            "overflow-hidden transition-all duration-400 ease-out",
+            fullText && isExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="pt-3 border-t animate-fade-in">
             <p className="text-sm text-foreground/70 leading-relaxed">{fullText}</p>
           </div>
-        )}
+        </div>
 
         <div className="flex items-center gap-2 pt-2">
           <Button
