@@ -33,9 +33,13 @@ const handler = async (req: Request): Promise<Response> => {
     const alertDirection = alertType === "above" ? "risen above" : "dropped below";
     const emoji = alertType === "above" ? "📈" : "📉";
 
+    // For testing, always send to verified email address
+    const testEmail = "reddyshashank200508@gmail.com";
+    console.log(`Sending to test email: ${testEmail} (original: ${userEmail})`);
+    
     const emailResponse = await resend.emails.send({
       from: "FINNOLAN Alerts <onboarding@resend.dev>",
-      to: [userEmail],
+      to: [testEmail],
       subject: `${emoji} ${stockSymbol} Price Alert - Target Reached!`,
       html: `
         <!DOCTYPE html>
