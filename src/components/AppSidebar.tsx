@@ -63,15 +63,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar collapsible="icon" className="transition-all duration-300 ease-out">
-      <SidebarHeader className="border-b border-border p-4">
+    <Sidebar collapsible="icon" className="transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] border-r border-border/50 bg-card/50 backdrop-blur-xl">
+      <SidebarHeader className="border-b border-border/50 p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shrink-0 shadow-soft transition-transform duration-300 hover:scale-105">
-            <IndianRupee className="h-6 w-6 text-primary-foreground" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary to-accent flex items-center justify-center shrink-0 shadow-medium transition-all duration-500 hover:scale-110 hover:shadow-strong hover:rotate-3">
+            <IndianRupee className="h-6 w-6 text-primary-foreground transition-transform duration-300" />
           </div>
           {!collapsed && (
             <div className="animate-fade-in">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
                 FINNOLAN
               </h1>
               <p className="text-xs text-muted-foreground">AI Financial Assistant</p>
@@ -86,16 +86,16 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item, index) => (
-                <SidebarMenuItem key={item.title} style={{ animationDelay: `${index * 0.05}s` }} className="animate-slide-in-left">
+                <SidebarMenuItem key={item.title} style={{ animationDelay: `${index * 0.06}s` }} className="animate-slide-in-left opacity-0">
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
                       end={item.url === "/"} 
-                      className="flex items-center gap-3 transition-all duration-200 hover:bg-muted/50 hover:translate-x-0.5"
-                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft"
+                      className="flex items-center gap-3 rounded-lg transition-all duration-300 ease-out hover:bg-primary/5 hover:translate-x-1 group"
+                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft border-l-2 border-primary"
                     >
-                      <item.icon className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-4 w-4 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                      <span className="transition-colors duration-200">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -109,15 +109,15 @@ export function AppSidebar({ user, isAdmin }: AppSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               {toolsNavItems.map((item, index) => (
-                <SidebarMenuItem key={item.title} style={{ animationDelay: `${(index + 5) * 0.05}s` }} className="animate-slide-in-left">
+                <SidebarMenuItem key={item.title} style={{ animationDelay: `${(index + 5) * 0.06}s` }} className="animate-slide-in-left opacity-0">
                   <SidebarMenuButton asChild tooltip={item.title}>
                     <NavLink 
                       to={item.url} 
-                      className="flex items-center gap-3 transition-all duration-200 hover:bg-muted/50 hover:translate-x-0.5"
-                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft"
+                      className="flex items-center gap-3 rounded-lg transition-all duration-300 ease-out hover:bg-primary/5 hover:translate-x-1 group"
+                      activeClassName="bg-primary/10 text-primary font-medium shadow-soft border-l-2 border-primary"
                     >
-                      <item.icon className="h-4 w-4 shrink-0 transition-transform duration-200" />
-                      <span>{item.title}</span>
+                      <item.icon className="h-4 w-4 shrink-0 transition-all duration-300 group-hover:scale-110 group-hover:text-primary" />
+                      <span className="transition-colors duration-200">{item.title}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
