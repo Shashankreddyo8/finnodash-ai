@@ -3,6 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { LanguageSelector } from "@/components/LanguageSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
@@ -64,6 +65,7 @@ export function AppLayout() {
             <div className="flex items-center justify-between px-4 py-3">
               <SidebarTrigger className="mr-2 transition-all duration-300 hover:scale-110 hover:bg-muted/50 active:scale-95 rounded-lg" />
               <div className="flex items-center gap-2">
+                <ThemeToggle />
                 <LanguageSelector value={language} onChange={setLanguage} />
               </div>
             </div>
