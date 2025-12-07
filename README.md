@@ -1,5 +1,18 @@
 🧠 FINNOLAN — AI-Powered Financial Research Assistant
+🏆 Why the Name FINNOLAN?
 
+Inspired by Christopher Nolan, known for:
+
+complex narratives
+
+precision
+
+deep logic
+
+intelligent storytelling
+
+FinnoDash-AI reflects the same qualities — smart, layered, structured, intelligent, and ahead of its time.
+FINNOLAN = Finance + Nolan-level intelligence.
 A modern, intelligent financial analytics platform inspired by the precision and complexity of Christopher Nolan’s storytelling.
 
 FINNOLAN is an AI-driven financial research assistant that unifies real-time stock data, news summarization, sentiment analysis, AI insights, and automated notifications into a single, seamless dashboard.
@@ -168,10 +181,10 @@ FINNOLAN is optimized for real-time performance and low-bandwidth environments.
 
 👨‍💻 Team & Contributions
 Name	Role	Contributions
-Balaji R	Automation (n8n)	Alerts, workflows, WhatsApp bot, scheduled summaries
-Shashank N	Backend & Integration	Edge Functions, AI pipelines, DB schemas, security
+**Balaji R	Automation (n8n)	Alerts, workflows, WhatsApp bot, scheduled summaries**
+**Shashank N	Backend & Integration	Edge Functions, AI pipelines, DB schemas, security
 Nithin P Gowda	Frontend Development	Dashboard UI, chat panel, search interface
-Prajwal S K	Frontend + Visualization	Charts, executive summary, sentiment UI
+Prajwal S K	Frontend + Visualization	Charts, executive summary, sentiment UI******
 🎯 Project Vision
 
 FINNOLAN aims to:
