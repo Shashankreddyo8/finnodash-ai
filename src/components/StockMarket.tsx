@@ -89,19 +89,22 @@ export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Market Indices */}
-      <Card className="p-6 animate-fade-in">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Market Indices</h3>
+      <Card className="p-6 animate-fade-in backdrop-blur-sm bg-card/80">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-lg font-semibold">Market Indices</h3>
+            <p className="text-sm text-muted-foreground">Live market performance</p>
+          </div>
           <Button
             variant="outline"
             size="sm"
             onClick={fetchMarketData}
             disabled={isLoading}
-            className="gap-2"
+            className="gap-2 group"
           >
-            <RefreshCw className={`h-4 w-4 transition-transform duration-500 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 transition-all duration-500 group-hover:rotate-180 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
         </div>
@@ -110,45 +113,52 @@ export const StockMarket = ({ onStocksUpdate }: StockMarketProps = {}) => {
           {marketData.indices.map((index, i) => (
             <div
               key={index.name}
-              className="p-4 rounded-xl bg-muted/50 border border-border transition-all duration-300 hover:bg-muted/70 hover:shadow-soft hover:-translate-y-0.5 animate-slide-up"
+              className="relative p-5 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50 backdrop-blur-sm transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)] hover:bg-muted/60 hover:shadow-medium hover:-translate-y-1 hover:border-border group animate-slide-up cursor-default"
               style={{ animationDelay: `${i * 0.1}s` }}
             >
-              <div className="text-sm text-muted-foreground mb-1">{index.name}</div>
-              <div className="text-2xl font-bold mb-1">
-                {index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-              </div>
-              <div className="text-sm">
-                {formatChange(index.change, index.changePercent)}
+              <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <div className="relative z-10">
+                <div className="text-sm text-muted-foreground mb-2 font-medium">{index.name}</div>
+                <div className="text-2xl font-bold mb-2 transition-transform duration-300 group-hover:scale-[1.02]">
+                  {index.value.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm">
+                  {formatChange(index.change, index.changePercent)}
+                </div>
               </div>
             </div>
           ))}
         </div>
         
         {lastUpdated && (
-          <div className="text-xs text-muted-foreground mt-4 animate-fade-in">
+          <div className="text-xs text-muted-foreground mt-6 animate-fade-in flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse-soft" />
             Last updated: {lastUpdated.toLocaleTimeString('en-IN')}
           </div>
         )}
       </Card>
 
       {/* Top Stocks */}
-      <Card className="p-6 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-        <h3 className="text-lg font-semibold mb-4">Top Stocks</h3>
+      <Card className="p-6 animate-fade-in backdrop-blur-sm bg-card/80" style={{ animationDelay: '0.2s' }}>
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold">Top Stocks</h3>
+          <p className="text-sm text-muted-foreground">Most active Indian stocks</p>
+        </div>
         
         <div className="space-y-3">
           {marketData.topStocks.map((stock, i) => (
             <div
               key={stock.symbol}
-              className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-all duration-300 hover:bg-muted/50 hover:shadow-soft hover:-translate-y-0.5 animate-slide-up"
-              style={{ animationDelay: `${(i + 3) * 0.05}s` }}
+              className="relative flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 border border-transparent transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] hover:from-muted/50 hover:to-muted/30 hover:shadow-soft hover:-translate-y-0.5 hover:border-border/50 group animate-slide-up cursor-default"
+              style={{ animationDelay: `${(i + 3) * 0.06}s` }}
             >
               <div className="flex-1">
-                <div className="font-semibold">{stock.symbol}</div>
+                <div className="font-semibold transition-colors duration-200 group-hover:text-primary">{stock.symbol}</div>
                 <div className="text-sm text-muted-foreground">{stock.name}</div>
               </div>
               
               <div className="text-right mr-4">
-                <div className="font-semibold">
+                <div className="font-semibold transition-transform duration-300 group-hover:scale-105 origin-right">
                   ₹{stock.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-muted-foreground">
